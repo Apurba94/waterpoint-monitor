@@ -35,7 +35,8 @@ table { border-collapse:collapse; width:100%; } th, td { text-align:left; paddin
 th { color:var(--muted); font-weight:600; }
 label { display:block; margin:0 0 12px; font-weight:600; }
 input, select, textarea { display:block; width:100%; max-width:440px; min-height:42px; padding:8px; font:inherit; color:inherit; background:var(--bg); border:1px solid var(--line); border-radius:6px; margin-top:4px; }
-input[type=checkbox] { display:inline; width:auto; min-height:auto; }
+input[type=checkbox], input[type=radio] { display:inline-block; width:18px; height:18px; min-height:0; padding:0; margin:0 6px 0 0; vertical-align:middle; accent-color:var(--accent); }
+a { color:var(--accent); }
 button, .button { display:inline-block; min-height:42px; padding:8px 16px; font:inherit; font-weight:600; color:#fff; background:var(--accent); border:0; border-radius:6px; cursor:pointer; text-decoration:none; }
 @media (prefers-color-scheme: dark) { button, .button { color:#10222b; } }
 .stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom:16px; }
@@ -43,6 +44,11 @@ button, .button { display:inline-block; min-height:42px; padding:8px 16px; font:
 .flash { padding:12px 16px; border-radius:8px; margin-bottom:16px; border:1px solid var(--line); background:var(--card); }
 .bad { color:var(--bad); } .good { color:var(--good); } .warn { color:var(--warn); } .muted { color:var(--muted); }
 svg text { fill:var(--ink); font-size:12px; } svg .bar { fill:var(--accent); } svg .line { stroke:var(--accent); fill:none; stroke-width:2; } svg .axis { stroke:var(--line); }
+@media (max-width: 640px) {
+  table.stack thead { display:none; } table.stack, table.stack tbody, table.stack tr, table.stack td { display:block; width:100%; }
+  table.stack tr { padding:8px 0; border-bottom:1px solid var(--line); } table.stack td { border:0; padding:3px 0; }
+  table.stack td[data-label]:not([data-label=""])::before { content:attr(data-label); display:block; font-size:13px; color:var(--muted); }
+}
 @media print { header, nav, form, .no-print { display:none; } body { background:#fff; color:#000; } .card { border:0; padding:0; } }
 """
 
@@ -302,11 +308,11 @@ def table(rows, columns, empty="Nothing here yet."):
     body = []
     for r in rows:
         cells = []
-        for _, key in columns:
+        for t, key in columns:
             v = key(r) if callable(key) else r[key]
-            cells.append(f"<td>{v.html if isinstance(v, Raw) else h('' if v is None else str(v))}</td>")
+            cells.append(f"<td data-label=\"{h(t)}\">{v.html if isinstance(v, Raw) else h('' if v is None else str(v))}</td>")
         body.append("<tr>" + "".join(cells) + "</tr>")
-    return f"<table><thead><tr>{head}</tr></thead><tbody>{''.join(body)}</tbody></table>"
+    return f'<table class="stack"><thead><tr>{head}</tr></thead><tbody>{"".join(body)}</tbody></table>'
 
 
 class Raw:
